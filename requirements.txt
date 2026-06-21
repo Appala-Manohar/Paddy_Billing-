@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic
+pydantic-settings
+pyjwt
+bcrypt
+pandas
+openpyxl
+reportlab
+requests
+python-multipart
