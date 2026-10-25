@@ -1,8 +1,10 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import { createContext, useState, useContext } from 'react';
 
 const AuthContext = createContext(null);
 
-export const API_URL = 'http://localhost:8000';
+export const API_URL = (import.meta.env && import.meta.env.VITE_API_URL) 
+  ? import.meta.env.VITE_API_URL 
+  : 'http://localhost:8000';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
@@ -27,7 +29,8 @@ export const AuthProvider = ({ children }) => {
       token: data.access_token,
       role: data.role,
       username: data.username,
-      full_name: data.full_name
+      full_name: data.full_name,
+      email: data.email
     };
     setUser(userData);
     localStorage.setItem('paddy_user', JSON.stringify(userData));
@@ -37,6 +40,65 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('paddy_user');
+  };
+
+  const register = async (username, email, password, fullName, role = 'staff') => {
+    const res = await fetch(`${API_URL}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        username, 
+        email, 
+        password, 
+        full_name: fullName, 
+        role 
+      })
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.detail || 'Registration failed');
+    }
+
+    const data = await res.json();
+    return data;
+  };
+
+  const forgotPassword = async (email) => {
+    const res = await fetch(`${API_URL}/api/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.detail || 'Failed to send password reset request');
+    }
+    return data;
+  };
+
+  const verifyResetToken = async (token) => {
+    const res = await fetch(`${API_URL}/api/auth/verify-reset-token?token=${encodeURIComponent(token)}`);
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.detail || 'Invalid or expired password reset link');
+    }
+    return data;
+  };
+
+  const resetPassword = async (token, newPassword) => {
+    const res = await fetch(`${API_URL}/api/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, new_password: newPassword })
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.detail || 'Failed to reset password');
+    }
+    return data;
   };
 
   const apiFetch = async (endpoint, options = {}) => {
@@ -60,7 +122,16 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, apiFetch }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      login, 
+      logout, 
+      register, 
+      forgotPassword, 
+      verifyResetToken, 
+      resetPassword, 
+      apiFetch 
+    }}>
       {children}
     </AuthContext.Provider>
   );

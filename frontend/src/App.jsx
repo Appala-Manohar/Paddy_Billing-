@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Sidebar from './components/Sidebar';
@@ -10,6 +9,8 @@ import BillHistory from './pages/BillHistory';
 import MillLedger from './pages/MillLedger';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 const ProtectedRoute = ({ children }) => {
   const { user } = useAuth();
@@ -24,6 +25,9 @@ const AppLayout = () => {
       <main className={user ? "main-content" : ""}>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Login initialMode="register" />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/farmers" element={<ProtectedRoute><Farmers /></ProtectedRoute>} />
           <Route path="/new-billing" element={<ProtectedRoute><NewBilling /></ProtectedRoute>} />

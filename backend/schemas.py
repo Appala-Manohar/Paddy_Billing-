@@ -5,11 +5,16 @@ from datetime import datetime
 # User Schemas
 class UserBase(BaseModel):
     username: str
-    role: str
+    email: Optional[str] = None
+    role: str = "staff"
     full_name: str
 
-class UserCreate(UserBase):
-    password: str
+class UserCreate(BaseModel):
+    username: str = Field(..., min_length=3, max_length=50)
+    email: str = Field(..., min_length=5)
+    password: str = Field(..., min_length=6)
+    full_name: str = Field(..., min_length=1)
+    role: str = "staff"
 
 class UserChangePassword(BaseModel):
     old_password: str
@@ -21,12 +26,25 @@ class UserResponse(UserBase):
     class Config:
         from_attributes = True
 
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(..., min_length=6)
+
+class VerifyTokenResponse(BaseModel):
+    valid: bool
+    email: Optional[str] = None
+    username: Optional[str] = None
+
 class Token(BaseModel):
     access_token: str
     token_type: str
     role: str
     username: str
     full_name: str
+    email: Optional[str] = None
 
 # Farmer Schemas
 class FarmerBase(BaseModel):
